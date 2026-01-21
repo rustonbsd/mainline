@@ -196,8 +196,15 @@ impl Core {
             };
         }
 
-        for (id, _) in done_put_queries {
+        for (id, err) in done_put_queries {
             self.put_queries.remove(id);
+            
+            // When rapidly restarting nodes from behind same ip:port, we might have
+            // cached iterative queries from previous runs that are no longer valid.
+            // Maybe this?
+            if err.is_some() {
+                self.cached_iterative_queries.pop(id);
+            }
         }
 
         should_ping_alleged_new_address
